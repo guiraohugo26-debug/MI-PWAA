@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "description": "MI-PWAA",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "TARSGPT",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "TARS",
+  "start_url": "/",
+  "theme_color": "#ffffff"
+}

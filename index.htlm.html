@@ -1,0 +1,115 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TARS</title>
+  <link rel="manifest" href="manifest.json">
+  <!-- Tu CSS y demás -->
+</head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TARS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+  body {
+    margin: 0;
+    background: white;
+    color: black;
+    font-family: 'Open Sans', Arial, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #title {
+    position: fixed;
+    top: 70px;
+    width: 100%;
+    text-align: center;
+    font-size: 14px;
+    font-weight: normal;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+  <div id="title">TARS</div>
+
+<script>
+  const OPENAI_API_KEY = "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";
+
+  let TARSActive = false;
+  let conversation = [
+    { role: "system", content: "Eres TARS, un asistente virtual amigable." }
+  ];
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = "es-ES";
+  recognition.continuous = true;
+  recognition.interimResults = false;
+
+  function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "es-ES";
+    speechSynthesis.speak(utterance);
+  }
+
+  async function askOpenAI(question) {
+    conversation.push({ role: "user", content: question });
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: conversation
+      })
+    });
+
+    if (!response.ok) {
+      speak("Lo siento, hubo un problema al conectar con la inteligencia artificial.");
+      return;
+    }
+
+    const data = await response.json();
+    const answer = data.choices[0].message.content.trim();
+
+    conversation.push({ role: "assistant", content: answer });
+    speak(answer);
+  }
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+    console.log("Escuchado:", transcript);
+
+    if (!TARSActive) {
+      if (transcript.includes("TARS")) {
+        TARSActive = true;
+        speak("me alegra oir tu voz, en que puedo ayudarte?");
+      }
+    } else {
+      if (transcript.length > 0) {
+        askOpenAI(transcript);
+      }
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Error reconocimiento:", event.error);
+  };
+
+  recognition.onend = () => {
+    recognition.start();
+  };
+
+  window.onload = () => {
+    recognition.start();
+  };
+</script>
+
+</body>
+</html>   
